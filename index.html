@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang = "en">
+	<head>
+		<title>ThreeExpoProject</title>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+		<style>
+			body {
+
+				color: #61443e;
+				font-family:Monospace;
+				font-size:13px;
+				text-align:center;
+				background-color: #bfd1e5;
+				padding: 0;
+				margin: 0;
+				overflow: hidden;
+			}
+
+			#menu {
+				position: absolute;
+				top: 20px;
+				width: 100%;
+				text-align: center;
+				padding: 0;
+				margin: 0;
+			}
+			#materials {
+				position: absolute;
+				bottom: 20px;
+				width: 100%;
+				text-align: center;
+				padding: 0;
+				margin: 0;
+			}
+			button {
+				color: rgb(255,255,255);
+				background: transparent;
+				border: 0px;
+				padding: 5px 10px;
+				cursor: pointer;
+			}
+			button:hover {
+				background-color: rgba(0,255,255,0.5);
+			}
+			button:active {
+				color: #000000;
+				background-color: rgba(0,255,255,1);
+			}
+			button2 {
+				color: rgb(255,255,255);
+				background: transparent;
+				border: 0px;
+				padding: 5px 10px;
+				cursor: pointer;
+			}
+			button2:hover {
+				background-color: rgba(0,255,255,0.5);
+			}
+			button2 :active {
+				color: #000000;
+				background-color: rgba(0,255,255,1);
+			}
+
+
+		</style>
+
+	</head>
+	<body>
+	<div id="budget"></div>
+	<div id="menu"></div>
+	<div id="container"><br /><br /><br /><br /><br /></div>
+		<script src="MyFiles/floorObject.js"></script>
+		<script src="MyFiles/light.js"></script>
+		<script src="MyFiles/Model.js"></script>
+		<script src="ThreeFiles/stats.min.js"></script>
+		<script src="ThreeFiles/three.js"></script>
+    <script src="ThreeFiles/DDSLoader.js"></script>
+    <script src="ThreeFiles/MTLLoader.js"></script>
+    <script src="ThreeFiles/OBJLoader.js"></script>
+		<script src="ThreeFiles/OrbitControls.js"></script>
+		<script src="ThreeFiles/ammo.js"></script>
+		<script src="ThreeFiles/Reflector.js"></script>
+		<script src="MyFiles/Mirror.js"></script>
+		<script src="MyFiles/AxisHelper.js"></script>
+		<script src="MyFiles/MYOBjects.js"></script>
+		<script src="ThreeFiles/dat.gui.min.js"></script>
+		<script src="ThreeFiles/tween.min.js"></script>
+	<script>
+
+
+		//-----------------------------GLOBAL VARIABLES---------------------------\\
+
+		var current_material, effectController;
+		var myObjects;
+		var axis;
+		var mirror;
+		var floorObject;
+		var container, stats;
+		var camera, controls, scene, renderer;
+		var ambientLight;
+		var WIDTH = window.innerWidth;
+		var HEIGHT = window.innerHeight;
+		var root;
+		var mesh, materialStandard, materialDepthBasic, materialDepthRGBA, materialNormal;
+		var height = 500;
+		var SCALE = 2.436143;
+		var BIAS = - 0.428408;
+		var object;
+		var path = "models/WorkoutShorts.OBJ";
+		var can = false;
+
+
+		//instances
+		model = new Model();
+		floorObject = new FloorObject();
+		light = new Light();
+		light2 = new Light();
+		mirror = new Mirror();
+		axis = new Axis();
+		myObjects = new MYObjects();
+
+		textureLoader = new THREE.TextureLoader();
+
+		var normalMap = textureLoader.load( "models/Ninja/normal.jpg" );
+		var aoMap = textureLoader.load( "models/Ninja/ao.jpg" );
+		var displacementMap = textureLoader.load( "models/Ninja/displacement.jpg" );
+
+		var budgetContainer = document.getElementById('budget');
+		var menuContainer = document.getElementById('menu');
+		var materialContainer = document.getElementById('materials');
+
+		var materiall = new THREE.MeshLambertMaterial({ color: 0xff6600, combine: THREE.MixOperation, reflectivity: 0.3 });
+
+		var MATERIALSS= {
+
+			"orange": new THREE.MeshLambertMaterial({color: 0xff6600, combine: THREE.MixOperation, reflectivity: 0.3}),
+			"blue": new THREE.MeshLambertMaterial({color: 0x001133, combine: THREE.MixOpertation, reflectivity: 0.3})
+
+		}
+
+		var OBJECTS = {
+
+			"ManObjectContainer": "man.obj",
+			"WomenObjectContainer": "woman.obj"
+		}
+
+
+		var COORDINATES = {
+
+			"MoveCamera" : coordinates(7, 8, 7),
+			"ResetCamera": coordinates(106, 96, 105)
+
+		}
+
+
+		//-----------------------------MAIN CALL FUNCTIONS-----------------------------\\
+
+		init();
+		animate();
+
+
+		//-----------------------------INIT FUNCTIONS-----------------------------\\
+		function init(){
+
+			initGraphics();
+
+			createObjects();
+
+
+		}
+
+		//-----------------------------IMPORTANT FUNCTIONS------------------------\\
+
+		function initGraphics() {
+
+			container = document.getElementById( 'container' );
+
+			camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.2, 2000 );
+
+			scene = new THREE.Scene();
+			scene.background = new THREE.Color( 0xbfd1e5 );
+			scene.fog = new THREE.Fog( 0xE6E6E6, 0, 750 );
+			camera.position.set( 107, 93, 106);
+
+			renderer = new THREE.WebGLRenderer({
+				antialias: true
+			});
+			renderer.setPixelRatio( window.devicePixelRatio );
+			renderer.setSize( window.innerWidth, window.innerHeight );
+			renderer.shadowMap.enabled = true;
+
+
+			//Orbit controls
+			controls();
+
+			//render
+			render();
+
+			container.innerHTML = "";
+			container.appendChild( renderer.domElement );
+
+			//monitor performance
+			monitorPerformance();
+
+			//group
+			root = new THREE.Group();
+			scene.add(root);
+
+
+			// botons
+			mainMenu();
+
+
+		}
+
+		function animate(){
+
+			TWEEN.update();
+
+			requestAnimationFrame(animate);
+
+			render();
+
+			stats.update();
+
+		}
+
+		function render() {
+			renderer.render(scene, camera);
+		}
+
+		function monitorPerformance() {
+			stats = new Stats();
+			stats.domElement.style.position = 'absolute';
+			stats.domElement.style.top = '0px';
+			container.appendChild( stats.domElement );
+			window.addEventListener( 'resize', onWindowResize, false );
+		}
+
+		function onWindowResize() {
+			camera.aspect = window.innerWidth / window.innerHeight;
+			camera.updateProjectionMatrix();
+			renderer.setSize( window.innerWidth, window.innerHeight );
+		}
+
+		//-----------------------------CONTROLS FUNCTIONS-------------------------\\
+
+		function controls() {
+			controls = new THREE.OrbitControls( camera , renderer.domElement);
+			controls.target.set( 0, 2, 0 );
+			controls.enableZoom = true;
+			controls.update();
+
+		}
+
+		//-----------------------------OBJECTS FUNCTIONS--------------------------\\
+
+		function createObjects() {
+
+			// X red, Y green, Z blue
+			axis.show(200);
+
+			//objects
+			floorObject.show(2000,2000,10,100);
+
+
+			//Lights
+			spotLight = light.spotLight();
+
+			pointLight = light2.pointLight();
+			pointLight.position.set(50,150,10);
+			pointLight.distance = 310;
+
+			//AmbientLight
+			ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
+	    ambientLight.position.set(0,10,0);
+			ambientLight.intensity = 0.5;
+			scene.add(ambientLight);
+
+		}
+
+
+		//---------------------------BUTTONS FUNCTIONS--------------------------\\
+
+		function ButtonCallBack(x, y, z) {
+
+			return function ( event ) {
+				//console.log('IN');
+				tween(x, y, z);
+			}
+		}
+
+		function mainMenu() {
+
+			for (var m in COORDINATES){
+
+				var button = document.createElement('button');
+				//button.innerHTML = "Move Camera";
+				button.innerHTML = m;
+
+				menuContainer.appendChild(button);
+
+				var pos = COORDINATES[m];
+
+
+				button.addEventListener('click', ButtonCallBack(pos.x, pos.y, pos.z));
+
+			}
+
+
+		}
+
+		function tween(x, y, z) {
+
+			var posX = x;
+			var posY = y;
+			var posZ = z;
+
+			var from = {
+					x: camera.position.x,
+					y: camera.position.y,
+					z: camera.position.z
+			};
+
+			var to = {
+					x: posX,
+					y: posY,
+					z: posZ
+			};
+
+			var tween = new TWEEN.Tween(from)
+					.to(to, 600)
+					.easing(TWEEN.Easing.Linear.None)
+					.onUpdate(function () {
+					camera.position.set(this.x, this.y, this.z);
+					camera.lookAt(new THREE.Vector3(0, 0, 0));
+				})
+					.onComplete(function () {
+					camera.lookAt(new THREE.Vector3(0, 0, 0));
+				})
+					.start();
+
+		}
+
+		function resetCameraCoordinates() {
+			var cameraCoord = {
+
+				x: camPosX,
+				y: camPosY,
+				z: camPosZ
+			}
+
+			return cameraCoord;
+		}
+
+		function coordinates(posX, posY, posZ) {
+
+			var coord = {
+
+				x: posX,
+				y: posY,
+				z: posZ
+			}
+
+			return coord;
+
+		}
+
+		function generateMenuButton(button, name) {
+
+
+
+		}
+
+		//---------------------------MODEL LOADER FUNCTIONS-----------------------\\
+
+		function OBJLoader(x, y , z, path, name){
+
+			// while (root.children.length > 0){
+			//
+	    //   var object = root.children[0];
+	    //   object.parent.remove( object );
+	    // }
+
+
+
+			var objLoader = new THREE.OBJLoader();
+			objLoader.load(path, function(group){
+
+				var geometry = group.children[ 0 ].geometry;
+				geometry.attributes.uv2 = geometry.attributes.uv;
+
+				mesh = new THREE.Mesh( geometry, materialNormal );
+
+				mesh.scale.multiplyScalar( 0.5 );
+				mesh.position.set(x, y, z);
+				mesh.rotation.y = Math.PI / 4;
+				//root.add( mesh );
+				scene.add( mesh );
+
+				mesh.name = name;
+
+				console.log(mesh.name);
+
+
+
+				//console.log(mesh);
+
+
+
+			});
+
+
+
+		}
+
+		function customOBJLoader(x, y, z, path, scalar, name ) {
+
+			// while (root.children.length > 0){
+			//
+			// 	var object = root.children[0];
+			// 	object.parent.remove( object );
+			// }
+
+
+			var objLoader = new THREE.OBJLoader();
+			objLoader.load(path, function(group){
+
+				var geometry = group.children[ 0 ].geometry;
+				geometry.attributes.uv2 = geometry.attributes.uv;
+
+				mesh = new THREE.Mesh( geometry, materialNormal );
+
+				mesh.scale.multiplyScalar( scalar );
+				mesh.position.set(x, y, z);
+				mesh.rotation.y = Math.PI / 4;
+				mesh.name = "shirt";
+
+				console.log(mesh.name);
+				//root.add( mesh );
+				scene.add( mesh );
+			});
+		}
+
+
+		//-----------------------------------------------------------------------\\
+	</script>
+
+
+	</body>
+</html>
