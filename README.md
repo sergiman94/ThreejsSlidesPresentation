@@ -1,6 +1,6 @@
-# Three.js World Template
+# Three.js Slides Presentation
 
-World template with OrbitControls and a plane as 'floor', no physics included
+Tween camera animation with OrbitControls and a plane as 'floor', no physics included
 
 ## Deployment
 
