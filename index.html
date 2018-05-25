@@ -47,20 +47,7 @@
 				color: #000000;
 				background-color: rgba(0,255,255,1);
 			}
-			button2 {
-				color: rgb(255,255,255);
-				background: transparent;
-				border: 0px;
-				padding: 5px 10px;
-				cursor: pointer;
-			}
-			button2:hover {
-				background-color: rgba(0,255,255,0.5);
-			}
-			button2 :active {
-				color: #000000;
-				background-color: rgba(0,255,255,1);
-			}
+
 
 
 		</style>
@@ -86,6 +73,8 @@
 		<script src="MyFiles/MYOBjects.js"></script>
 		<script src="ThreeFiles/dat.gui.min.js"></script>
 		<script src="ThreeFiles/tween.min.js"></script>
+		<script src="MyFiles/PObjects.js"></script>
+		<script src="ThreeFiles/FlyControls.js"></script>
 	<script>
 
 
@@ -109,7 +98,19 @@
 		var object;
 		var path = "models/WorkoutShorts.OBJ";
 		var can = false;
+		var objects;
+		var group = new THREE.Group();
+		var planeMesh;
+		var materiall = new THREE.MeshPhongMaterial({color: 0xffffff});
+		var menuContainer = document.getElementById('menu');
+		var posY = 30;
+		textureLoader = new THREE.TextureLoader();
+		var geometry;
 
+		var flyControls;
+
+		var sl01 = "Sliders/Slider01.jpg";
+		var sl02 = "Sliders/Slider02.jpg";
 
 		//instances
 		model = new Model();
@@ -119,39 +120,35 @@
 		mirror = new Mirror();
 		axis = new Axis();
 		myObjects = new MYObjects();
-
-		textureLoader = new THREE.TextureLoader();
-
-		var normalMap = textureLoader.load( "models/Ninja/normal.jpg" );
-		var aoMap = textureLoader.load( "models/Ninja/ao.jpg" );
-		var displacementMap = textureLoader.load( "models/Ninja/displacement.jpg" );
-
-		var budgetContainer = document.getElementById('budget');
-		var menuContainer = document.getElementById('menu');
-		var materialContainer = document.getElementById('materials');
-
-		var materiall = new THREE.MeshLambertMaterial({ color: 0xff6600, combine: THREE.MixOperation, reflectivity: 0.3 });
-
-		var MATERIALSS= {
-
-			"orange": new THREE.MeshLambertMaterial({color: 0xff6600, combine: THREE.MixOperation, reflectivity: 0.3}),
-			"blue": new THREE.MeshLambertMaterial({color: 0x001133, combine: THREE.MixOpertation, reflectivity: 0.3})
-
-		}
-
-		var OBJECTS = {
-
-			"ManObjectContainer": "man.obj",
-			"WomenObjectContainer": "woman.obj"
-		}
-
+		objects = new PObjects();
 
 		var COORDINATES = {
 
-			"MoveCamera" : coordinates(7, 8, 7),
-			"ResetCamera": coordinates(106, 96, 105)
+			"ResetCamera": coordinates(563, 321, 333),
+			"Slide01": coordinates(-22, 35, 88),
+			"Slide02": coordinates(148, 38, 68),
+			"Slide03": coordinates(303, 36, 68),
+			"Slide04": coordinates(457, 36, 68),
+			"Slide05": coordinates(606, 36, 68),
+
+			"Slide06": coordinates(-22, 35, -88),
+			"Slide07": coordinates(164, 36, -75),
+			"Slide08": coordinates(305, 36, -75),
+			"Slide09": coordinates(458, 36, -75),
+
+			"Slide10": coordinates(-22, 40, 270),
+			"Slide11": coordinates(148, 40, 270),
+			"Slide12": coordinates(303, 49, 270),
+			"Slide13": coordinates(457, 36, 270),
+			"Slide14": coordinates(606, 36, 270),
+
+			"Slide15": coordinates(606, 36, 470),
+			"Slide16": coordinates(457, 36, 470)
 
 		}
+
+
+
 
 
 		//-----------------------------MAIN CALL FUNCTIONS-----------------------------\\
@@ -167,6 +164,8 @@
 
 			createObjects();
 
+			mainMenu();
+
 
 		}
 
@@ -181,7 +180,10 @@
 			scene = new THREE.Scene();
 			scene.background = new THREE.Color( 0xbfd1e5 );
 			scene.fog = new THREE.Fog( 0xE6E6E6, 0, 750 );
-			camera.position.set( 107, 93, 106);
+			camera.position.set( 563, 321, 333);
+			camera.rotation.set(-1.10, 0.82, 1.013);
+
+
 
 			renderer = new THREE.WebGLRenderer({
 				antialias: true
@@ -190,9 +192,11 @@
 			renderer.setSize( window.innerWidth, window.innerHeight );
 			renderer.shadowMap.enabled = true;
 
-
 			//Orbit controls
-			controls();
+			//orbitControlsFunction();
+
+			//FlyControls
+			flyControlsFunction();
 
 			//render
 			render();
@@ -207,9 +211,8 @@
 			root = new THREE.Group();
 			scene.add(root);
 
+			scene.add(group);
 
-			// botons
-			mainMenu();
 
 
 		}
@@ -227,6 +230,11 @@
 		}
 
 		function render() {
+
+			var delta = clock.getDelta();
+
+			flyControls.update(delta);
+
 			renderer.render(scene, camera);
 		}
 
@@ -235,6 +243,7 @@
 			stats.domElement.style.position = 'absolute';
 			stats.domElement.style.top = '0px';
 			container.appendChild( stats.domElement );
+
 			window.addEventListener( 'resize', onWindowResize, false );
 		}
 
@@ -246,13 +255,29 @@
 
 		//-----------------------------CONTROLS FUNCTIONS-------------------------\\
 
-		function controls() {
-			controls = new THREE.OrbitControls( camera , renderer.domElement);
-			controls.target.set( 0, 2, 0 );
-			controls.enableZoom = true;
-			controls.update();
+		function orbitControlsFunction() {
+
+			orbitControls = new THREE.OrbitControls( camera, renderer.domElement);
+			orbitControls.target.set( 0, 2, 0);
+			orbitControls.enableZoom = true;
+			orbitControls.update();
 
 		}
+
+		function flyControlsFunction() {
+
+			flyControls = new THREE.FlyControls( camera );
+			flyControls.movementSpeed = 100;
+			flyControls.domElement = renderer.domElement;
+			flyControls.rollSpeed = Math.PI / 10;
+			flyControls.autoForward = false;
+			flyControls.dragToLook = true;
+
+			//console.log(flyControls);
+
+
+		}
+
 
 		//-----------------------------OBJECTS FUNCTIONS--------------------------\\
 
@@ -278,6 +303,9 @@
 			ambientLight.intensity = 0.5;
 			scene.add(ambientLight);
 
+			slides();
+
+
 		}
 
 
@@ -287,7 +315,7 @@
 
 			return function ( event ) {
 				//console.log('IN');
-				tween(x, y, z);
+				tween(x, y, z, 1000);
 			}
 		}
 
@@ -303,7 +331,6 @@
 
 				var pos = COORDINATES[m];
 
-
 				button.addEventListener('click', ButtonCallBack(pos.x, pos.y, pos.z));
 
 			}
@@ -311,7 +338,11 @@
 
 		}
 
-		function tween(x, y, z) {
+		function tween(x, y, z, animationTime) {
+
+			//animationTime = 1000
+
+			;
 
 			var posX = x;
 			var posY = y;
@@ -330,28 +361,18 @@
 			};
 
 			var tween = new TWEEN.Tween(from)
-					.to(to, 600)
+					.to(to, animationTime)
 					.easing(TWEEN.Easing.Linear.None)
 					.onUpdate(function () {
 					camera.position.set(this.x, this.y, this.z);
 					camera.lookAt(new THREE.Vector3(0, 0, 0));
 				})
 					.onComplete(function () {
+
 					camera.lookAt(new THREE.Vector3(0, 0, 0));
 				})
 					.start();
 
-		}
-
-		function resetCameraCoordinates() {
-			var cameraCoord = {
-
-				x: camPosX,
-				y: camPosY,
-				z: camPosZ
-			}
-
-			return cameraCoord;
 		}
 
 		function coordinates(posX, posY, posZ) {
@@ -361,17 +382,131 @@
 				x: posX,
 				y: posY,
 				z: posZ
+
 			}
 
 			return coord;
 
 		}
 
-		function generateMenuButton(button, name) {
+		function slider(x, y, z, sliderImage) {
+
+			geometry = new THREE.PlaneGeometry( 100, 50);
+
+			planeMesh = new THREE.Mesh(geometry, sliderImage);
+
+
+			planeMesh.position.x = x;
+			planeMesh.position.y = y;
+			planeMesh.position.z = z;
+
+			scene.add(planeMesh);
+
+
+			return planeMesh;
+
+
+		}
+
+		function slides() {
+
+			var texture1 = new THREE.TextureLoader().load( 'Sliders/Slider01.jpg');
+			var texture2 = new THREE.TextureLoader().load( 'Sliders/Slider02.jpg');
+			var texture3 = new THREE.TextureLoader().load( 'Sliders/Slider03.jpg');
+			var texture4 = new THREE.TextureLoader().load( 'Sliders/Slider04.jpg');
+			var texture5 = new THREE.TextureLoader().load( 'Sliders/Slider05.jpg');
+			var texture6 = new THREE.TextureLoader().load( 'Sliders/Slider06.jpg');
+			var texture7 = new THREE.TextureLoader().load( 'Sliders/Slider07.jpg');
+			var texture8 = new THREE.TextureLoader().load( 'Sliders/Slider08.jpg');
+			var texture9 = new THREE.TextureLoader().load( 'Sliders/Slider09.jpg');
+			var texture10 = new THREE.TextureLoader().load( 'Sliders/Slider10.jpg');
+			var texture11 = new THREE.TextureLoader().load( 'Sliders/Slider11.jpg');
+			var texture12 = new THREE.TextureLoader().load( 'Sliders/Slider12.jpg');
+			var texture13 = new THREE.TextureLoader().load( 'Sliders/Slider13.jpg');
+			var texture14 = new THREE.TextureLoader().load( 'Sliders/Slider14.jpg');
+			var texture15 = new THREE.TextureLoader().load( 'Sliders/Slider15.jpg');
+			var texture16 = new THREE.TextureLoader().load( 'Sliders/Slider16.jpg');
+
+
+
+
+
+			slider01 = new THREE.MeshBasicMaterial( { map: texture1 } );
+			slider02 = new THREE.MeshBasicMaterial( { map: texture2 } );
+			slider03 = new THREE.MeshBasicMaterial( { map: texture3 } );
+			slider04 = new THREE.MeshBasicMaterial( { map: texture4 } );
+			slider05 = new THREE.MeshBasicMaterial( { map: texture5 } );
+			slider06 = new THREE.MeshBasicMaterial( { map: texture6 } );
+			slider07 = new THREE.MeshBasicMaterial( { map: texture7 } );
+			slider08 = new THREE.MeshBasicMaterial( { map: texture8 } );
+			slider09 = new THREE.MeshBasicMaterial( { map: texture9 } );
+			slider10 = new THREE.MeshBasicMaterial( { map: texture10 } );
+			slider11 = new THREE.MeshBasicMaterial( { map: texture11 } );
+			slider12 = new THREE.MeshBasicMaterial( { map: texture12 } );
+			slider13 = new THREE.MeshBasicMaterial( { map: texture13} );
+			slider14 = new THREE.MeshBasicMaterial( { map: texture14} );
+			slider15 = new THREE.MeshBasicMaterial( { map: texture15 } );
+			slider16 = new THREE.MeshBasicMaterial( { map: texture16 } );
+
+			// slide01
+		 	slider(0, posY, 0, slider01);
+
+			// slide02
+			slider(150, posY, 0, slider02);
+
+			// slide03
+			slider(300, posY, 0, slider03);
+
+			// slide04
+			slider(450, posY, 0, slider04);
+
+			// slide05
+			slider(600, posY, 0, slider05);
+
+
+			//------------------------------------
+
+			//slide06
+			slider(0, posY, -2, slider06).rotateY(Math.PI);
+
+			//slide07
+			slider(150, posY, -2, slider07).rotateY(Math.PI);
+
+			//slide08
+			slider(300, posY, -2, slider08).rotateY(Math.PI);
+
+			//slide09
+			slider(450, posY, -2, slider09).rotateY(Math.PI);
+
+			//------------------------------------
+
+			//slide10
+			slider(0, posY, 200, slider10);
+
+			//slide11
+			slider(150, posY, 200, slider11);
+
+			//slide12
+			slider(300, posY, 200, slider12);
+
+			//slide13
+			slider(450, posY, 200, slider13);
+
+			//slide14
+			slider(600, posY, 200, slider14);
+
+			//------------------------------------
+
+			//Slide15
+			slider(600, posY, 400, slider15);
+
+			//Slide16
+			slider(450, posY, 400, slider16);
 
 
 
 		}
+
 
 		//---------------------------MODEL LOADER FUNCTIONS-----------------------\\
 
