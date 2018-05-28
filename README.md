@@ -1,6 +1,6 @@
 # Three.js Slides Presentation
 
-Tween camera animation with OrbitControls and a plane as 'floor', no physics included
+Tween camera animation with buttons only at the X axis, point lights and a plane with a grid, no physics included
 
 ## Deployment
 

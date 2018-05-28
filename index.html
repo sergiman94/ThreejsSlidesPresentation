@@ -1,3 +1,6 @@
+<!-- 
+	@author sergiman94 : sergiman94@gmail.com : Sergio Manrique
+ -->
 <!DOCTYPE html>
 <html lang = "en">
 	<head>
@@ -106,6 +109,7 @@
 		var posY = 30;
 		textureLoader = new THREE.TextureLoader();
 		var geometry;
+		var spotLight;
 
 		var flyControls;
 
@@ -124,32 +128,28 @@
 
 		var COORDINATES = {
 
-			"ResetCamera": coordinates(563, 321, 333),
-			"Slide01": coordinates(-22, 35, 88),
-			"Slide02": coordinates(148, 38, 68),
-			"Slide03": coordinates(303, 36, 68),
-			"Slide04": coordinates(457, 36, 68),
-			"Slide05": coordinates(606, 36, 68),
+			"ResetCamera": coordinates(314, 247, 610),
+			"Slide01": coordinates(1.32, 28, 66.30),
+			"Slide02": coordinates(148, 28, 68),
+			"Slide03": coordinates(296, 26, 68),
+			"Slide04": coordinates(447, 26, 68),
+			"Slide05": coordinates(596, 26, 68),
 
-			"Slide06": coordinates(-22, 35, -88),
-			"Slide07": coordinates(164, 36, -75),
-			"Slide08": coordinates(305, 36, -75),
-			"Slide09": coordinates(458, 36, -75),
+			"Slide06": coordinates(-2.010, 25, -88),
+			"Slide07": coordinates(149.03, 26, -75),
+			"Slide08": coordinates(298, 26, -75),
+			"Slide09": coordinates(446, 26, -75),
 
-			"Slide10": coordinates(-22, 40, 270),
-			"Slide11": coordinates(148, 40, 270),
-			"Slide12": coordinates(303, 49, 270),
-			"Slide13": coordinates(457, 36, 270),
-			"Slide14": coordinates(606, 36, 270),
+			"Slide10": coordinates(-0.41, 38, 270),
+			"Slide11": coordinates(148, 38, 270),
+			"Slide12": coordinates(298, 38, 270),
+			"Slide13": coordinates(450, 34, 270),
+			"Slide14": coordinates(600, 36, 270),
 
-			"Slide15": coordinates(606, 36, 470),
-			"Slide16": coordinates(457, 36, 470)
+			"Slide15": coordinates(597.67, 36, 470),
+			"Slide16": coordinates(448, 36, 470)
 
 		}
-
-
-
-
 
 		//-----------------------------MAIN CALL FUNCTIONS-----------------------------\\
 
@@ -178,11 +178,14 @@
 			camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.2, 2000 );
 
 			scene = new THREE.Scene();
-			scene.background = new THREE.Color( 0xbfd1e5 );
-			scene.fog = new THREE.Fog( 0xE6E6E6, 0, 750 );
-			camera.position.set( 563, 321, 333);
-			camera.rotation.set(-1.10, 0.82, 1.013);
+			var backgroundTexture = new THREE.TextureLoader().load("models/universe.jpg");
+			scene.background = new THREE.Color( 0xE0ECF8 ); //0xbfd1e5
+			//scene.background = backgroundTexture;
+			scene.fog = new THREE.Fog( 0x6E6E6E, 300, 750 );
 
+			//Camera settings
+			camera.position.set( 314, 200, 800);
+			camera.rotation.set(-0, 0, -0);
 
 
 			renderer = new THREE.WebGLRenderer({
@@ -273,6 +276,8 @@
 			flyControls.autoForward = false;
 			flyControls.dragToLook = true;
 
+
+
 			//console.log(flyControls);
 
 
@@ -284,28 +289,58 @@
 		function createObjects() {
 
 			// X red, Y green, Z blue
-			axis.show(200);
+			//axis.show(200);
 
 			//objects
+
 			floorObject.show(2000,2000,10,100);
 
 
 			//Lights
-			spotLight = light.spotLight();
 
-			pointLight = light2.pointLight();
-			pointLight.position.set(50,150,10);
-			pointLight.distance = 310;
+			//spotLight = light.spotLight();
+
+			// pointLight = light.pointLight();
+			// pointLight.position.set(50,150,10);
+			// pointLight.distance = 310;
 
 			//AmbientLight
-			ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
+			ambientLight = new THREE.AmbientLight(0xF5F6CE, 0.8);
 	    ambientLight.position.set(0,10,0);
-			ambientLight.intensity = 0.5;
+			ambientLight.intensity = 0.001;
 			scene.add(ambientLight);
 
 			slides();
 
 
+		}
+
+		function pointLight(x, y, z, color){
+
+			var pointLight = new THREE.PointLight(color);
+			pointLight.receiveShadow = true;
+	    pointLight.position.set(x, y, z);
+	    pointLight.angle = 0.15;
+	    pointLight.distance = 200;
+	    pointLight.intensity = 1;
+
+			scene.add(pointLight)
+
+			return pointLight;
+		}
+
+		function spotLightHelper( spotLight) {
+
+			var spotLightHelper = new THREE.SpotLightHelper(spotLight);
+	    scene.add(spotLightHelper);
+			return spotLight;
+
+		}
+
+		function pointLightHelper(pointLight) {
+			var sphereSize = 5;
+	    var pointLightHelper = new THREE.PointLightHelper( pointLight, sphereSize );
+	    scene.add( pointLightHelper );
 		}
 
 
@@ -315,7 +350,7 @@
 
 			return function ( event ) {
 				//console.log('IN');
-				tween(x, y, z, 1000);
+				tween(x, y, z, 2000);
 			}
 		}
 
@@ -365,11 +400,11 @@
 					.easing(TWEEN.Easing.Linear.None)
 					.onUpdate(function () {
 					camera.position.set(this.x, this.y, this.z);
-					camera.lookAt(new THREE.Vector3(0, 0, 0));
+					camera.lookAt(new THREE.Vector3(camera.position.x, camera.position.y , camera.position.z));
 				})
 					.onComplete(function () {
 
-					camera.lookAt(new THREE.Vector3(0, 0, 0));
+					camera.lookAt(new THREE.Vector3(camera.position.x, camera.position.y, camera.position.z));
 				})
 					.start();
 
@@ -395,13 +430,11 @@
 
 			planeMesh = new THREE.Mesh(geometry, sliderImage);
 
-
 			planeMesh.position.x = x;
 			planeMesh.position.y = y;
 			planeMesh.position.z = z;
 
 			scene.add(planeMesh);
-
 
 			return planeMesh;
 
@@ -429,8 +462,6 @@
 
 
 
-
-
 			slider01 = new THREE.MeshBasicMaterial( { map: texture1 } );
 			slider02 = new THREE.MeshBasicMaterial( { map: texture2 } );
 			slider03 = new THREE.MeshBasicMaterial( { map: texture3 } );
@@ -448,60 +479,99 @@
 			slider15 = new THREE.MeshBasicMaterial( { map: texture15 } );
 			slider16 = new THREE.MeshBasicMaterial( { map: texture16 } );
 
+			var azul = 0x2E2FFE;
+			var rojo = 0xFE2E64;
+			var verde = 0x64FE2E;
+
 			// slide01
 		 	slider(0, posY, 0, slider01);
+			var pointLight01 = pointLight(0, 100, 0, azul);
+			//pointLightHelper(pointLight01);
 
 			// slide02
 			slider(150, posY, 0, slider02);
+			var pointLight02 = pointLight(150, 100, 0, rojo);
+			//pointLightHelper(pointLight02);
+
 
 			// slide03
 			slider(300, posY, 0, slider03);
+			var pointLight03 = pointLight(300, 100, 0, verde);
+			//pointLightHelper(pointLight03);
+
 
 			// slide04
 			slider(450, posY, 0, slider04);
+			var pointLight04 = pointLight(450, 100, 0, azul);
+			pointLightHelper(pointLight04);
 
 			// slide05
 			slider(600, posY, 0, slider05);
+			var pointLight05 = pointLight(600, 100, 0, rojo);
+			//pointLightHelper(pointLight05);
 
 
 			//------------------------------------
 
 			//slide06
-			slider(0, posY, -2, slider06).rotateY(Math.PI);
+			slider(0, posY, -150, slider06);
+			var pointLight06 = pointLight(0, 100, -50, azul);
+			//pointLightHelper(pointLight06);
 
 			//slide07
-			slider(150, posY, -2, slider07).rotateY(Math.PI);
+			slider(150, posY, -150, slider07);
+			var pointLight07 = pointLight(150, 100, -150, rojo);
+			//pointLightHelper(pointLight07);
 
 			//slide08
-			slider(300, posY, -2, slider08).rotateY(Math.PI);
+			slider(300, posY, -150, slider08);
+			var pointLight08 = pointLight(300, 100, -150, verde);
+			//pointLightHelper(pointLight08);
 
 			//slide09
-			slider(450, posY, -2, slider09).rotateY(Math.PI);
+			slider(450, posY, -150, slider09);
+			var pointLight09 = pointLight(450, 100, -150, azul);
+			//pointLightHelper(pointLight09);
 
 			//------------------------------------
 
 			//slide10
 			slider(0, posY, 200, slider10);
+			var pointLight10 = pointLight(0, 100, 200, azul);
+			//pointLightHelper(pointLight10);
 
 			//slide11
 			slider(150, posY, 200, slider11);
+			var pointLight11 = pointLight(150, 100, 200, rojo);
+			//pointLightHelper(pointLight11);
 
 			//slide12
 			slider(300, posY, 200, slider12);
+			var pointLight12 = pointLight(300, 100, 200, verde);
+			//pointLightHelper(pointLight12);
+
 
 			//slide13
 			slider(450, posY, 200, slider13);
+			var pointLight13 = pointLight(450, 100, 200, azul);
+			//pointLightHelper(pointLight13);
 
 			//slide14
 			slider(600, posY, 200, slider14);
+			var pointLight14 = pointLight(600, 100, 200, rojo);
+			//pointLightHelper(pointLight14);
 
 			//------------------------------------
 
 			//Slide15
 			slider(600, posY, 400, slider15);
+			var pointLight15 = pointLight(600, 100, 400, azul);
+			//pointLightHelper(pointLight15);
 
 			//Slide16
 			slider(450, posY, 400, slider16);
+			var pointLight16 = pointLight(450, 100, 400, rojo);
+			//pointLightHelper(pointLight16);
 
 
 
